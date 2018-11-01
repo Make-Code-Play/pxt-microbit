@@ -6,11 +6,6 @@ namespace pxsim {
         time: number;
     }
 
-    // Extends interface in pxt-core
-    export interface SimulatorRadioPacketPayload {
-        bufferData?: Uint8Array;
-    }
-
     export class RadioDatagram {
         datagram: PacketBuffer[] = [];
         lastReceived: PacketBuffer = RadioDatagram.defaultPacket();
@@ -29,8 +24,8 @@ namespace pxsim {
             const b = board();
             Runtime.postMessage(<SimulatorRadioPacketMessage>{
                 type: "radiopacket",
-                rssi: -42, // -42 is the strongest signal
-                serial: b.radioState.transmitSerialNumber ? pxsim.control.deviceSerialNumber() : 0,
+                rssi: 70, // Not yet supported
+                serial: b.radioState.bus.transmitSerialNumber ? pxsim.control.deviceSerialNumber() : 0,
                 time: new Date().getTime(),
                 payload
             })
@@ -52,20 +47,15 @@ namespace pxsim {
         }
     }
 
-    export class RadioState {
+    export class RadioBus {
+        // uint8_t radioDefaultGroup = MICROBIT_RADIO_DEFAULT_GROUP;
         power = 0;
         transmitSerialNumber = false;
         datagram: RadioDatagram;
-        groupId: number;
 
-        constructor(runtime: Runtime) {
+        constructor(private runtime: Runtime) {
             this.datagram = new RadioDatagram(runtime);
             this.power = 6; // default value
-            this.groupId = 0;
-        }
-
-        public setGroup(id: number) {
-            this.groupId = id & 0xff; // byte only
         }
 
         setTransmitPower(power: number) {
@@ -76,19 +66,37 @@ namespace pxsim {
             this.transmitSerialNumber = !!sn;
         }
 
-        raiseEvent(id: number, eventid: number) {
+        broadcast(msg: number, groupId: number) {
             Runtime.postMessage(<SimulatorEventBusMessage>{
                 type: "eventbus",
-                id,
-                eventid,
+                id: DAL.MES_BROADCAST_GENERAL_ID,
+                eventid: msg,
                 power: this.power,
-                group: this.groupId
+                group: groupId
             })
         }
+    }
 
-        receivePacket(packet: SimulatorRadioPacketMessage) {
+    export class RadioState {
+        bus: RadioBus;
+        groupId: number;
+
+        constructor(runtime: Runtime) {
+            this.bus = new RadioBus(runtime);
+            this.groupId = 0;
+        }
+
+        public setGroup(id: number) {
+            this.groupId = id & 0xff; // byte only
+        }
+
+        public broadcast(msg: number) {
+            this.bus.broadcast(msg, this.groupId)
+        }
+
+        public receivePacket(packet: SimulatorRadioPacketMessage) {
             if (this.groupId == packet.payload.groupId)
-                this.datagram.queue(packet)
+                this.bus.datagram.queue(packet)
         }
     }
 }
@@ -101,8 +109,12 @@ namespace pxsim.radio {
         BUFFER = 3
     }
 
-    export function raiseEvent(id: number, eventid: number): void {
-        board().radioState.raiseEvent(id, eventid);
+    export function broadcastMessage(msg: number): void {
+        board().radioState.broadcast(msg);
+    }
+
+    export function onBroadcastMessageReceived(msg: number, handler: RefAction): void {
+        pxtcore.registerWithDal(DAL.MES_BROADCAST_GENERAL_ID, msg, handler);
     }
 
     export function setGroup(id: number): void {
@@ -110,15 +122,15 @@ namespace pxsim.radio {
     }
 
     export function setTransmitPower(power: number): void {
-        board().radioState.setTransmitPower(power);
+        board().radioState.bus.setTransmitPower(power);
     }
 
     export function setTransmitSerialNumber(transmit: boolean): void {
-        board().radioState.setTransmitSerialNumber(transmit);
+        board().radioState.bus.setTransmitSerialNumber(transmit);
     }
 
     export function sendNumber(value: number): void {
-        board().radioState.datagram.send({
+        board().radioState.bus.datagram.send({
             type: PacketPayloadType.NUMBER,
             groupId: board().radioState.groupId,
             numberData: value,
@@ -129,7 +141,7 @@ namespace pxsim.radio {
         if (msg === undefined) return;
 
         msg = msg.substr(0, 19);
-        board().radioState.datagram.send({
+        board().radioState.bus.datagram.send({
             type: PacketPayloadType.STRING,
             groupId: board().radioState.groupId,
             stringData: msg,
@@ -138,9 +150,9 @@ namespace pxsim.radio {
 
     export function sendBuffer(buf: RefBuffer): void {
         if (!buf) return;
-
+        
         const data = buf.data.slice(0, 18);
-        board().radioState.datagram.send({
+        board().radioState.bus.datagram.send({
             type: PacketPayloadType.STRING,
             groupId: board().radioState.groupId,
             bufferData: data
@@ -149,19 +161,19 @@ namespace pxsim.radio {
 
     export function writeValueToSerial(): void {
         const b = board();
-        writePacketToSerial(b, b.radioState.datagram.recv())
+        writePacketToSerial(b, b.radioState.bus.datagram.recv())
     }
 
     export function writeReceivedPacketToSerial(): void {
         const b = board();
-        writePacketToSerial(b, b.radioState.datagram.lastReceived);
+        writePacketToSerial(b, b.radioState.bus.datagram.lastReceived);
     }
 
     export function sendValue(name: string, value: number) {
         name = name.substr(0, 12);
         const msg: number[] = [];
         msg.push()
-        board().radioState.datagram.send({
+        board().radioState.bus.datagram.send({
             type: PacketPayloadType.VALUE,
             groupId: board().radioState.groupId,
             stringData: name,
@@ -170,17 +182,17 @@ namespace pxsim.radio {
     }
 
     export function receiveNumber(): number {
-        const packet = board().radioState.datagram.recv();
+        const packet = board().radioState.bus.datagram.recv();
         return receivedNumber();
     }
 
     export function receiveString(): string {
-        const packet = board().radioState.datagram.recv();
+        const packet = board().radioState.bus.datagram.recv();
         return receivedString();
     }
 
     export function receivedSignalStrength(): number {
-        return board().radioState.datagram.lastReceived.rssi;
+        return board().radioState.bus.datagram.lastReceived.rssi;
     }
 
     export function onDataReceived(handler: RefAction): void {
@@ -189,23 +201,23 @@ namespace pxsim.radio {
     }
 
     export function receivedNumber(): number {
-        return board().radioState.datagram.lastReceived.payload.numberData || 0;
+        return board().radioState.bus.datagram.lastReceived.payload.numberData || 0;
     }
 
     export function receivedSerial(): number {
-        return board().radioState.datagram.lastReceived.serial;
+        return board().radioState.bus.datagram.lastReceived.serial;
     }
 
     export function receivedString(): string {
-        return initString(board().radioState.datagram.lastReceived.payload.stringData || "");
+        return initString(board().radioState.bus.datagram.lastReceived.payload.stringData || "");
     }
 
     export function receivedBuffer(): RefBuffer {
-        return new RefBuffer(board().radioState.datagram.lastReceived.payload.bufferData || new Uint8Array(0))
+        return new RefBuffer(board().radioState.bus.datagram.lastReceived.payload.bufferData || new Uint8Array(0))
     }
 
     export function receivedTime(): number {
-        return board().radioState.datagram.lastReceived.time;
+        return board().radioState.bus.datagram.lastReceived.time;
     }
 
     function writePacketToSerial(b: DalBoard, p: PacketBuffer) {
@@ -219,13 +231,12 @@ namespace pxsim.radio {
             case PacketPayloadType.STRING:
                 b.writeSerial(`{"t":${p.time},"s":${p.serial},"n":"${p.payload.stringData}"}\r\n`)
                 break;
-            // TODO: (microbit master)
-            // case PacketPayloadType.BUFFER:
-            //     const buf = new Uint8Array(p.payload.bufferData.buffer);
-            //     let res = "";
-            //     for (let i = 0; i < buf.length; ++i)
-            //         res += String.fromCharCode(buf[i]);
-            //     b.writeSerial(`{"t":${p.time},"s":${p.serial},"b":"${res}"}\r\n`)
+            case PacketPayloadType.BUFFER:
+                const buf = new Uint8Array(p.payload.bufferData.buffer);
+                let res = "";
+                for (let i = 0; i < buf.length; ++i)
+                    res += String.fromCharCode(buf[i]);
+                b.writeSerial(`{"t":${p.time},"s":${p.serial},"b":"${res}"}\r\n`)
             default:
                 // unknown type
                 break;

@@ -1,3 +1,4 @@
+/// <reference path="../../node_modules/pxt-core/typings/globals/bluebird/index.d.ts"/>
 /// <reference path="../../node_modules/pxt-core/built/pxtsim.d.ts"/>
 
 namespace pxsim.visuals {
@@ -39,7 +40,7 @@ namespace pxsim.visuals {
         svg.fills(result.ledsOuter, defaultLedMatrixTheme.ledOff);
 
         //turn off LEDs
-        result.leds.forEach(l => (<SVGStyleElement><any>l).style.opacity = 0 + "");
+        result.leds.forEach(l => (<SVGStylable><any>l).style.opacity = 0 + "");
 
         return result;
     }
@@ -102,7 +103,7 @@ namespace pxsim.visuals {
         public updateState() {
             if (this.state.disabled) {
                 this.leds.forEach((led, i) => {
-                    let sel = (<SVGStyleElement><any>led)
+                    let sel = (<SVGStylable><any>led)
                     sel.style.opacity = 0 + "";
                 });
                 return;
@@ -111,7 +112,7 @@ namespace pxsim.visuals {
             const bw = this.state.displayMode == pxsim.DisplayMode.bw
             const img = this.state.image;
             this.leds.forEach((led, i) => {
-                let sel = (<SVGStyleElement><any>led)
+                let sel = (<SVGStylable><any>led)
                 let dx = i % this.DRAW_SIZE;
                 let dy = (i - dx) / this.DRAW_SIZE;
                 if (dx < this.ACTIVE_SIZE && dy < this.ACTIVE_SIZE) {

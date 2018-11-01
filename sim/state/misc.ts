@@ -35,13 +35,8 @@ namespace pxsim.basic {
 namespace pxsim.control {
     export var inBackground = thread.runInBackground;
 
-    export function createBuffer(sz: number) {
-        return pxsim.BufferMethods.createBuffer(sz)
-    }
-
     export function reset() {
-        const cb = getResume();
-        pxsim.runtime.restart();
+        U.userError("reset not implemented in simulator yet")
     }
 
     export function waitMicros(micros: number) {
@@ -63,13 +58,6 @@ namespace pxsim.control {
     }
 
     export function onEvent(id: number, evid: number, handler: RefAction) {
-        if (id == DAL.MICROBIT_ID_BUTTON_AB) {
-            const b = board().buttonPairState;
-            if (!b.usesButtonAB) {
-                b.usesButtonAB = true;
-                runtime.queueDisplayUpdate();
-            }
-        }
         pxtcore.registerWithDal(id, evid, handler)
     }
 
@@ -208,15 +196,6 @@ namespace pxsim.bluetooth {
     export function uartWriteString(s: string): void {
         serial.writeString(s)
     }
-
-    export function uartWriteBuffer(b: RefBuffer): void {
-        serial.writeBuffer(b);
-    }
-
-    export function uartReadBuffer(): RefBuffer {
-        return pins.createBuffer(0);        
-    }
-
     export function uartReadUntil(del: string): string {
         return serial.readUntil(del);
     }

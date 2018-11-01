@@ -1,24 +1,21 @@
 {
-    "id": "calliopeID",
-    "nickname": "calliopeNICK",
-    "name": "calliope.cc",
-    "title": "Microsoft MakeCode for calliope",
-    "description": "A Blocks / JavaScript code editor for the calliope mini powered by Microsoft MakeCode.",
+    "id": "microbit",
+    "nickname": "microbit",
+    "name": "makecode.microbit.org",
+    "title": "Microsoft MakeCode for micro:bit",
+    "description": "A Blocks / JavaScript code editor for the micro:bit powered by Microsoft MakeCode.",
     "corepkg": "core",
     "bundleddirs": [
         "libs/core",
         "libs/radio",
         "libs/devices",
-        "libs/bluetooth",
-        "libs/servo",
-        "libs/radio-broadcast"
+        "libs/bluetooth"
     ],
     "cloud": {
         "workspace": false,
         "packages": true,
         "sharing": true,
         "publishing": true,
-        "importing": true,
         "preferredPackages": [
             "Microsoft/pxt-neopixel"
         ],
@@ -27,64 +24,57 @@
     "compile": {
         "isNative": false,
         "hasHex": true,
-        "deployDrives": "(MINI|MBED)",
-        "driveName": "MINI",
+        "deployDrives": "(MICROBIT|MBED)",
+        "driveName": "MICROBIT",
         "hexMimeType": "application/x-microbit-hex",
         "openocdScript": "source [find interface/cmsis-dap.cfg]; source [find target/nrf51.cfg]",
-        "flashUsableEnd": 242688,
-        "flashEnd": 242688,
+        "flashUsableEnd": 245760,
+        "flashEnd": 245760,
         "flashCodeAlign": 1024,
-        "floatingPoint": true,
-        "taggedInts": true,
-        "patches": {
-            "0.0.0 - 1.0.0": [
-                {
-                    "type": "package",
-                    "map": {
-                        "microbit": "core",
-                        "microbit-bluetooth": "bluetooth",
-                        "microbit-radio": "radio",
-                        "microbit-devices": "devices",
-                        "microbit-led": "",
-                        "microbit-music": "",
-                        "microbit-game": "",
-                        "microbit-pins": "",
-                        "microbit-serial": ""
-                    }
-                },
-                {
-                    "type": "missingPackage",
-                    "map": {
-                        "radio\\s*\\.": "radio",
-                        "bluetooth\\s*\\.": "bluetooth",
-                        "devices\\s*\\.": "devices"
-                    }
-                },
-                {
-                    "type": "api",
-                    "map": {
-                        "bluetooth\\s*\\.uartRead\\s*\\((.*?)\\)": "bluetooth.uartReadUntil($1)",
-                        "bluetooth\\s*\\.uartWrite\\s*\\((.*?)\\)": "bluetooth.uartWriteUntil($1)",
-                        "input\\s*\\.calibrate\\s*\\(": "input.calibrateCompass(",
-                        "radio\\s*\\.onDataPacketReceived\\(\\s*\\(\\{\\s*receivedNumber\\s*\\}\\)\\s*=>\\s*\\{": "radio.onReceivedNumber(function (receivedNumber) {",
-                        "radio\\s*\\.onDataPacketReceived\\(\\s*\\(\\{\\s*receivedString: name, receivedNumber: value\\s*\\}\\)\\s*=>\\s*\\{": "radio.onReceivedValue(function (name, value) {",
-                        "radio\\s*\\.onDataPacketReceived\\(\\s*\\(\\{\\s*receivedString\\s*\\}\\)\\s*=>\\s*\\{": "radio.onReceivedString(function (receivedString) {"
-                    }
-                },
-                {
-                    "type": "blockId",
-                    "map": {
-                        "device_get_acceleration": "device_acceleration"
-                    }
-                },
-                {
-                    "type": "blockValue",
-                    "map": {
-                        "device_print_message.message": "text"
-                    }
+        "upgrades": [
+            {
+                "type": "package",
+                "map": {
+                    "microbit": "core",
+                    "microbit-bluetooth": "bluetooth",
+                    "microbit-radio": "radio",
+                    "microbit-devices": "devices",
+                    "microbit-led": "",
+                    "microbit-music": "",
+                    "microbit-game": "",
+                    "microbit-pins": "",
+                    "microbit-serial": ""
                 }
-            ]
-        },
+            },
+            {
+                "type": "missingPackage",
+                "map": {
+                    "radio\\s*\\.": "radio",
+                    "bluetooth\\s*\\.": "bluetooth",
+                    "devices\\s*\\.": "devices"
+                }
+            },
+            {
+                "type": "api",
+                "map": {
+                    "bluetooth\\s*\\.uartRead\\s*\\((.*?)\\)": "bluetooth.uartReadUntil($1)",
+                    "bluetooth\\s*\\.uartWrite\\s*\\((.*?)\\)": "bluetooth.uartWriteUntil($1)",
+                    "input\\s*\\.calibrate\\s*\\(": "input.calibrateCompass("
+                }
+            },
+            {
+                "type": "blockId",
+                "map": {
+                    "device_get_acceleration": "device_acceleration"
+                }
+            },
+            {
+                "type": "blockValue",
+                "map": {
+                    "device_print_message.message": "text"
+                }
+            }
+        ],
         "hidSelectors": [
             {
                 "usagePage": "0xFF00",
@@ -92,8 +82,7 @@
                 "vid": "0x0d28",
                 "pid": "0x0204"
             }
-        ],
-        "webUSB": true
+        ]
     },
     "runtime": {
         "mathBlocks": true,
@@ -103,12 +92,13 @@
         "textBlocks": true,
         "listsBlocks": true,
         "functionBlocks": true,
-        "onStartColor": "#1E90FF",
+        "onStartColor": "#0078D7",
         "onStartNamespace": "basic",
         "onStartWeight": 54
     },
     "simulator": {
         "autoRun": true,
+        "enableTrace": true,
         "streams": false,
         "aspectRatio": 1.22,
         "parts": true,
@@ -198,13 +188,7 @@
                 "thermometer",
                 "compass"
             ],
-            "pinStyles": {
-                "P0": "croc",
-                "P1": "croc",
-                "P2": "croc",
-                "GND": "croc",
-                "+3v3": "croc"
-            },
+            "useCrocClips": true,
             "marginWhenBreadboarding": [
                 0,
                 0,
@@ -218,8 +202,7 @@
         "yottaCorePackage": "microbit",
         "githubCorePackage": "lancaster-university/microbit",
         "gittag": "v2.1.0",
-        "serviceId": "microbit",
-        "dockerImage": "pext/yotta:latest"
+        "serviceId": "microbit"
     },
     "serial": {
         "nameFilter": "^(mbed Serial Port|DAPLink CMSIS-DAP)",
@@ -236,14 +219,15 @@
                 "#107C10"
             ]
         },
+        "chromeExtension": "hjcflblhjoglmjjkecamiegdigfkgeni",
         "vendorId": "0x0d28",
         "productId": "0x0204",
         "rawHID": true
     },
     "appTheme": {
         "accentColor": "#5C005C",
-        "logoUrl": "calliope.cc",
-        "logo": "./static/Logo_Calliope_lang.svg",
+        "logoUrl": "https://microbit.org/code/",
+        "logo": "./static/logo.portrait.white.svg",
         "docsLogo": "./static/logo.square.white.svg",
         "portraitLogo": "./static/logo.square.white.svg",
         "footerLogo": "./static/logo.portrait.black.svg",
@@ -253,38 +237,39 @@
         "organizationUrl": "https://makecode.com/",
         "organizationLogo": "./static/Microsoft-logo_rgb_c-gray-square.png",
         "organizationWideLogo": "./static/Microsoft-logo_rgb_c-white.png",
-        "homeScreenHero": "./static/hero.png",
-        "homeUrl": "https://makecode.calliope.cc/",
-        "embedUrl": "https://makecode.calliope.cc/",
-        "shareUrl": "https://makecode.calliope.cc/",
+        "homeUrl": "https://makecode.microbit.org/",
+        "embedUrl": "https://makecode.microbit.org/",
+        "shareUrl": "https://makecode.microbit.org/",
         "privacyUrl": "https://makecode.com/privacy",
         "termsOfUseUrl": "https://makecode.com/termsofuse",
         "githubUrl": "https://github.com/Microsoft/pxt-microbit",
-        "boardName": "Calliope mini",
-        "driveDisplayName": "MINI",
+        "galleries": {
+            "Projects": "projects",
+            "Examples": "examples"
+        },
+        "projectGallery": "projects",
+        "exampleGallery": "examples",
+        "crowdinProject": "kindscript",
+        "boardName": "micro:bit",
+        "driveDisplayName": "MICROBIT",
+        "sideDoc": "tutorials/getting-started",
         "feedbackUrl": "https://www.research.net/r/MCmicro",
         "appStoreID": "1092687276",
         "mobileSafariDownloadProtocol": "microbithex://?data",
         "extendEditor": true,
-        "extendFieldEditors": true,
-        "enableTrace": true,
-        "ignoreDocsErrors": true,
-        "experiments": [
-            "greenScreen",
-            "print",
-            "allowPackageExtensions",
-            "instructions",
-            "debugger",
-            "bluetoothUartConsole",
-            "bluetoothPartialFlashing"
-        ],
-        "bluetoothUartFilters": [{
-            "namePrefix": "BBC micro:bit"
-        }],
         "docMenu": [
             {
                 "name": "Support",
                 "path": "https://support.microbit.org/"
+            },
+            {
+                "name": "Getting started",
+                "tutorial": true,
+                "path": "/tutorials/getting-started"
+            },
+            {
+                "name": "Projects",
+                "path": "/projects"
             },
             {
                 "name": "Reference",
@@ -383,18 +368,7 @@
                 "snap": false
             }
         },
-        "blockColors": {
-            "logic": "#00A4A6",
-            "loops": "#00AA00",
-            "math": "#9400D3",
-            "variables": "#DC143C",
-            "text": "#B8860B",
-            "advanced": "#00272B",
-            "functions": "#3455DB",
-            "arrays": "#E65722"
-        },
         "highContrast": true,
-        "greenScreen": false,
         "selectLanguage": true,
         "availableLocales": [
             "en",
@@ -426,12 +400,6 @@
         ],
         "monacoColors": {
             "editor.background": "#ecf0f1"
-        },
-        "browserDbPrefixes": {
-            "1": "v1"
-        },
-        "editorVersionPaths": {
-            "0": "v0"
         }
     }
 }
